@@ -11,7 +11,7 @@ fn main() {
     let query: Vec<String> = args().skip(2).collect();
 
     match cmd.as_ref() {
-        "list" => list(&query),
+        "list"|"" => list(&query),
         "new" => new(),
         "open" => open(&query),
         "view" => view(&query),
