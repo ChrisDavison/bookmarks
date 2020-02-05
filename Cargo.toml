@@ -1,0 +1,10 @@
+[package]
+authors = ["Chris Davison <c.jr.davison@gmail.com>"]
+edition = "2018"
+name = "bookmarks"
+version = "0.1.0"
+
+[dependencies]
+tagsearch = "0.20.1"
+chrono = { version = "0.4", features = ["serde"] }
+dirs = "2.0"
