@@ -2,7 +2,7 @@
 authors = ["Chris Davison <c.jr.davison@gmail.com>"]
 edition = "2018"
 name = "bookmarks"
-version = "0.1.0"
+version = "0.2.0"
 license = "MIT"
 description = "Utility to manage plaintext bookmarks"
 

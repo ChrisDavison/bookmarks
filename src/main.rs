@@ -4,16 +4,18 @@ use std::process::Command;
 
 use chrono::prelude::*;
 
+const USAGE: &str = "usage: bookmarks new|list|open|view QUERY...";
+
 fn main() {
     let cmd: String = args().skip(1).take(1).collect();
     let query: Vec<String> = args().skip(2).collect();
 
-    let _ = match cmd.as_ref() {
-        "find" => Some(find(&query)),
-        "new" => {new(); None},
-        "open" => {open(&query); None},
-        "view" => {view(&query); None},
-        _ => {println!("Unknown cmd '{}'", cmd); None},
+    match cmd.as_ref() {
+        "list" => list(&query),
+        "new" => new(),
+        "open" => open(&query),
+        "view" => view(&query),
+        _ => println!("Unknown cmd '{}'\n\n{}", cmd, USAGE),
     };
 }
 
@@ -21,13 +23,26 @@ fn find(query: &[String]) -> Vec<String> {
     let query: Vec<&str> = query.iter().map(|x| x.as_str()).collect();
     let filt = tagsearch::filter::Filter::new(&query, false);
 
-    if let Ok(files) = tagsearch::utility::get_files(None) {
+    let bookmarks_dir = format!("{}/Dropbox/bookmarks/", dirs::home_dir().unwrap().to_string_lossy());
+    if let Ok(files) = tagsearch::utility::get_files(Some(bookmarks_dir)) {
         match filt.files_matching_tag_query(&files) {
             Ok(files) => files,
             Err(_) => Vec::new(),
         }
     } else {
         Vec::new()
+    }
+}
+
+fn list(query: &[String]) {
+    let files = find(query);
+    if files.is_empty() {
+        println!("No bookmarks matching query.");
+    } else {
+        println!("Bookmarks matching query:");
+        for (i, filename) in files.iter().enumerate() {
+            println!("{:-5}: {}", i, filename);
+        }
     }
 }
 
