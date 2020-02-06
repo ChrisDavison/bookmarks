@@ -85,11 +85,6 @@ fn list(query: &[String], title_query: &[String]) {
 fn new() {
     // A bunch of read_to_string, with prompts
     // for creating a new bookmark
-    let mut filename = String::new();
-    print!("Filename: ");
-    stdout().flush().expect("Failed to flush stdout");
-    stdin().read_line(&mut filename).expect("Invalid filename");
-
     let mut title = String::new();
     print!("Title: ");
     stdout().flush().expect("Failed to flush stdout");
@@ -107,13 +102,29 @@ fn new() {
     let tags: String = tags.split(' ').map(|x| "@".to_owned() + x).collect::<Vec<String>>().join(" ");
 
     let date = Local::today().format("%Y-%m-%d").to_string();
-    let filepath = format!("{}/Dropbox/bookmarks/{}.txt", dirs::home_dir().unwrap().to_string_lossy(), filename.trim());
+    let filepath = format!("{}/Dropbox/bookmarks/{}.txt", dirs::home_dir().unwrap().to_string_lossy(), title_to_filename(&title).trim());
+
     let mut out = format!("title: {}\n", title.trim());
     out += &format!("url: {}\n", url.trim());
     out += &format!("date: {}\n", date.trim());
     out += "\n";
     out += &format!("{}\n", tags.trim());
     std::fs::write(filepath, out).expect("Couldn't write file");
+}
+
+fn title_to_filename(t: &str) -> String {
+    let mut filename = String::new();
+    let mut prev = '_';
+    for ch in t.chars() {
+        if ch.is_alphabetic() {
+            filename.push(ch);
+            prev = ch;
+        } else if prev != '-' {
+            filename.push('-');
+            prev = '-';
+        }
+    }
+    filename.to_ascii_lowercase().trim_end_matches('-').to_string()
 }
 
 fn view(query: &[String], title_query: &[String]) {
