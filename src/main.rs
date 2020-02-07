@@ -141,7 +141,7 @@ mod command {
 
     pub fn prompt_for_string(prompt: &str) -> String {
         let mut response = String::new();
-        println!("{}: ", prompt);
+        print!("{}: ", prompt);
         stdout().flush().expect("Failed to flush stdout");
         let errmsg = format!("Invalid {}", prompt);
         stdin().read_line(&mut response).expect(&errmsg);
