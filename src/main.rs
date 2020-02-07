@@ -1,5 +1,5 @@
 use std::env::args;
-use std::io::{Write,stdin,stdout};
+use std::io::{stdin, stdout, Write};
 use std::process::Command;
 
 use chrono::prelude::*;
@@ -28,14 +28,18 @@ fn parse_args() -> BMArgs {
         }
     }
 
-    BMArgs{cmd, tag_query, title_query}
+    BMArgs {
+        cmd,
+        tag_query,
+        title_query,
+    }
 }
 
 fn main() {
     let args = parse_args();
 
     match args.cmd.as_ref() {
-        "list"|"" => list(&args.tag_query, &args.title_query),
+        "list" | "" => list(&args.tag_query, &args.title_query),
         "new" => new(),
         "open" => open(&args.tag_query, &args.title_query),
         "view" => view(&args.tag_query, &args.title_query),
@@ -56,13 +60,17 @@ fn find(query: &[String], title_query: &[String]) -> Vec<String> {
     let query: Vec<&str> = query.iter().map(|x| x.as_str()).collect();
     let filt = tagsearch::filter::Filter::new(&query, false);
 
-    let bookmarks_dir = format!("{}/Dropbox/bookmarks/", dirs::home_dir().unwrap().to_string_lossy());
+    let bookmarks_dir = format!(
+        "{}/Dropbox/bookmarks/",
+        dirs::home_dir().unwrap().to_string_lossy()
+    );
     if let Ok(files) = tagsearch::utility::get_files(Some(bookmarks_dir)) {
         match filt.files_matching_tag_query(&files) {
-            Ok(files) => {
-                files.iter().filter(|x| matches_all_strings((*x).to_string(), title_query))
-                .map(|x| x.to_string()).collect()
-            },
+            Ok(files) => files
+                .iter()
+                .filter(|x| matches_all_strings((*x).to_string(), title_query))
+                .map(|x| x.to_string())
+                .collect(),
             Err(_) => Vec::new(),
         }
     } else {
@@ -99,10 +107,18 @@ fn new() {
     print!("Tags: ");
     stdout().flush().expect("Failed to flush stdout");
     stdin().read_line(&mut tags).expect("Invalid tags");
-    let tags: String = tags.split(' ').map(|x| "@".to_owned() + x).collect::<Vec<String>>().join(" ");
+    let tags: String = tags
+        .split(' ')
+        .map(|x| "@".to_owned() + x)
+        .collect::<Vec<String>>()
+        .join(" ");
 
     let date = Local::today().format("%Y-%m-%d").to_string();
-    let filepath = format!("{}/Dropbox/bookmarks/{}.txt", dirs::home_dir().unwrap().to_string_lossy(), title_to_filename(&title).trim());
+    let filepath = format!(
+        "{}/Dropbox/bookmarks/{}.txt",
+        dirs::home_dir().unwrap().to_string_lossy(),
+        title_to_filename(&title).trim()
+    );
 
     let mut out = format!("title: {}\n", title.trim());
     out += &format!("url: {}\n", url.trim());
@@ -124,7 +140,10 @@ fn title_to_filename(t: &str) -> String {
             prev = '-';
         }
     }
-    filename.to_ascii_lowercase().trim_end_matches('-').to_string()
+    filename
+        .to_ascii_lowercase()
+        .trim_end_matches('-')
+        .to_string()
 }
 
 fn view(query: &[String], title_query: &[String]) {
@@ -139,7 +158,11 @@ fn view(query: &[String], title_query: &[String]) {
 fn open(query: &[String], title_query: &[String]) {
     if let Some(entry) = get_choice_from_find(query, title_query) {
         if let Ok(contents) = std::fs::read_to_string(entry) {
-            let url: String = contents.lines().filter(|x| x.starts_with("url")).map(|x| x.split(' ').nth(1).unwrap()).collect();
+            let url: String = contents
+                .lines()
+                .filter(|x| x.starts_with("url"))
+                .map(|x| x.split(' ').nth(1).unwrap())
+                .collect();
             if let Err(e) = Command::new("xdg-open").arg(url).status() {
                 println!("{}: ", e);
             }
@@ -161,8 +184,13 @@ fn get_choice_from_find(query: &[String], title_query: &[String]) -> Option<Stri
     println!();
     print!("Entry: ");
     stdout().flush().expect("Failed to flush stdout");
-    stdin().read_line(&mut response).expect("Not a correct string");
-    let entry: usize = response.trim_end().parse().expect("Failed to parse entry choice");
+    stdin()
+        .read_line(&mut response)
+        .expect("Not a correct string");
+    let entry: usize = response
+        .trim_end()
+        .parse()
+        .expect("Failed to parse entry choice");
     if entry < files.len() {
         Some(files[entry].clone())
     } else {
