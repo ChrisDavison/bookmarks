@@ -39,6 +39,7 @@ fn main() {
         "new" => command::new(),
         "open" => command::open(&args.tag_query, &args.title_query),
         "view" => command::view(&args.tag_query, &args.title_query),
+        "related" => command::related(&args.tag_query, &args.title_query),
         _ => println!("Unknown cmd '{}'\n\n{}", args.cmd, USAGE),
     };
 }
@@ -89,6 +90,15 @@ mod command {
                 println!();
                 println!("{}", contents);
             }
+        }
+    }
+
+    pub fn related(query: &[String], title_query: &[String]) {
+        let files = find(query, title_query);
+        let query: Vec<&str> = query.iter().map(|x| x.as_str()).collect();
+        let filt = tagsearch::filter::Filter::new(&query, false);
+        if let Ok(tags) = filt.tags_matching_tag_query(files) {
+            println!("{}", tags.join(", "));
         }
     }
 
