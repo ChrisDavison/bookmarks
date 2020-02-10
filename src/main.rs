@@ -87,12 +87,14 @@ mod command {
     }
 
     pub fn view(query: &[String], title_query: &[String]) {
-        if let Some(entry) = get_choice_from_find(query, title_query) {
-            if let Ok(contents) = std::fs::read_to_string(entry.clone()) {
-                println!("{}", "-".repeat(40));
-                println!("filename: {}", path_relative_to_bookmarks(&entry));
-                println!();
-                println!("{}", contents);
+        if let Some(entries) = get_choices_from_find(query, title_query) {
+            for entry in entries {
+                if let Ok(contents) = std::fs::read_to_string(entry.clone()) {
+                    println!("{}", "-".repeat(40));
+                    println!("filename: {}", path_relative_to_bookmarks(&entry));
+                    println!();
+                    println!("{}", contents);
+                }
             }
         }
     }
@@ -113,15 +115,17 @@ mod command {
     }
 
     pub fn open(query: &[String], title_query: &[String]) {
-        if let Some(entry) = get_choice_from_find(query, title_query) {
-            if let Ok(contents) = std::fs::read_to_string(entry) {
-                let url: String = contents
-                    .lines()
-                    .filter(|x| x.starts_with("url"))
-                    .map(|x| x.split(' ').nth(1).unwrap())
-                    .collect();
-                if let Err(e) = Command::new("xdg-open").arg(url).status() {
-                    println!("{}: ", e);
+        if let Some(entries) = get_choices_from_find(query, title_query) {
+            for entry in entries {
+                if let Ok(contents) = std::fs::read_to_string(entry) {
+                    let url: String = contents
+                        .lines()
+                        .filter(|x| x.starts_with("url"))
+                        .map(|x| x.split(' ').nth(1).unwrap())
+                        .collect();
+                    if let Err(e) = Command::new("xdg-open").arg(url).status() {
+                        println!("{}: ", e);
+                    }
                 }
             }
         }
@@ -198,7 +202,24 @@ mod command {
         }
     }
 
-    fn get_choice_from_find(query: &[String], title_query: &[String]) -> Option<String> {
+    fn get_numbers(response: String) -> Vec<usize> {
+        let mut nums = Vec::new();
+        let mut current = String::new();
+        for character in response.chars() {
+            if !character.is_numeric() && !current.is_empty() {
+                nums.push(current.parse().unwrap());
+                current = String::new();
+            } else {
+                current.push(character);
+            }
+        }
+        if !current.is_empty() {
+            nums.push(current.parse().unwrap())
+        }
+        nums
+    }
+
+    fn get_choices_from_find(query: &[String], title_query: &[String]) -> Option<Vec<String>> {
         let files = find(query, title_query);
         if files.is_empty() {
             println!("No files matching query.");
@@ -207,13 +228,13 @@ mod command {
         println!("Bookmarks matching query:");
         display_files(&files);
         println!();
-        let entry: usize = prompt_for_string("Entry")
-            .parse()
-            .expect("Failed to parse entry choice");
-        if entry < files.len() {
-            Some(files[entry].clone())
-        } else {
-            None
+        let response = get_numbers(prompt_for_string("Entry"));
+        let mut choices = Vec::new();
+        for num in response {
+            if num < files.len() {
+                choices.push(files[num].clone());
+            }
         }
+        Some(choices)
     }
 }
