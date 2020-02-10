@@ -52,7 +52,7 @@ fn title_to_filename(t: &str) -> String {
     let mut filename = String::new();
     let mut prev = '_';
     for ch in t.chars() {
-        if ch.is_alphabetic() {
+        if ch.is_alphanumeric() {
             filename.push(ch);
             prev = ch;
         } else if prev != '-' {
