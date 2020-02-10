@@ -79,7 +79,11 @@ mod command {
             "{}/Dropbox/bookmarks/",
             dirs::home_dir().unwrap().to_string_lossy()
         );
-        std::path::Path::new(&filename).strip_prefix(bookmarks_dir).unwrap().to_string_lossy().to_string()
+        std::path::Path::new(&filename)
+            .strip_prefix(bookmarks_dir)
+            .unwrap()
+            .to_string_lossy()
+            .to_string()
     }
 
     pub fn view(query: &[String], title_query: &[String]) {
@@ -98,7 +102,13 @@ mod command {
         let query: Vec<&str> = query.iter().map(|x| x.as_str()).collect();
         let filt = tagsearch::filter::Filter::new(&query, false);
         if let Ok(tags) = filt.tags_matching_tag_query(files) {
-            println!("{}", tags.join(", "));
+            let tags: String = tags
+                .iter()
+                .filter(|&x| !query.contains(&x.as_str()))
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>()
+                .join(", ");
+            println!("Related to `{}` :: {}", query.join(", "), tags);
         }
     }
 
