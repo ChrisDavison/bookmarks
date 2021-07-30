@@ -66,21 +66,24 @@ fn title_to_filename(t: &str) -> String {
         .to_string()
 }
 
+fn bookmarks_dir() -> std::path::PathBuf {
+    match std::env::var("BOOKMARKS_DIR") {
+        Ok(dir) => std::path::PathBuf::from(dir),
+        _ => dirs::home_dir().unwrap(),
+    }
+}
+
 mod command {
     use std::io::{stdin, stdout, Write};
     use std::process::Command;
 
     use chrono::prelude::*;
 
-    use super::{matches_all_strings, title_to_filename};
+    use super::{bookmarks_dir, matches_all_strings, title_to_filename};
 
     fn path_relative_to_bookmarks(filename: &str) -> String {
-        let bookmarks_dir = format!(
-            "{}/Dropbox/bookmarks/",
-            dirs::home_dir().unwrap().to_string_lossy()
-        );
         std::path::Path::new(&filename)
-            .strip_prefix(bookmarks_dir)
+            .strip_prefix(bookmarks_dir())
             .unwrap()
             .to_string_lossy()
             .to_string()
@@ -135,11 +138,9 @@ mod command {
         let query: Vec<&str> = query.iter().map(|x| x.as_str()).collect();
         let filt = tagsearch::filter::Filter::new(&query, false);
 
-        let bookmarks_dir = format!(
-            "{}/Dropbox/bookmarks/",
-            dirs::home_dir().unwrap().to_string_lossy()
-        );
-        if let Ok(files) = tagsearch::utility::get_files(Some(bookmarks_dir)) {
+        if let Ok(files) =
+            tagsearch::utility::get_files(Some(bookmarks_dir().to_string_lossy().to_string()))
+        {
             match filt.files_matching_tag_query(&files) {
                 Ok(files) => files
                     .iter()
@@ -182,12 +183,8 @@ mod command {
             .join(" ");
 
         let date = Local::today().format("%Y-%m-%d").to_string();
-        let filepath = format!(
-            "{}/Dropbox/bookmarks/{}.txt",
-            dirs::home_dir().unwrap().to_string_lossy(),
-            title_to_filename(&title).trim()
-        );
-
+        let mut filepath = bookmarks_dir();
+        filepath.push(title_to_filename(&title).trim());
         let mut out = format!("title: {}\n", title);
         out += &format!("url: {}\n", url);
         out += &format!("date: {}\n", date);
