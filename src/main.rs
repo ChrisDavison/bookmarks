@@ -4,6 +4,7 @@ mod command;
 
 const USAGE: &str = "usage: bookmarks new|list|open|view TAGS... [--title TITLE...]";
 
+#[derive(Debug)]
 struct BMArgs {
     cmd: String,
     tag_query: Vec<String>,
@@ -36,6 +37,8 @@ fn parse_args() -> BMArgs {
 fn main() {
     let args = parse_args();
 
+    dbg!(&args);
+
     match args.cmd.as_ref() {
         "list" | "" => command::list(&args.tag_query, &args.title_query),
         "new" => command::new(),
@@ -47,7 +50,8 @@ fn main() {
 }
 
 fn matches_all_strings(s: &str, substrings: &[String]) -> bool {
-    substrings.iter().all(|substring| s.contains(substring))
+    dbg!(substrings);
+    substrings.is_empty() || substrings.iter().all(|substring| s.contains(substring))
 }
 
 fn title_to_filename(t: &str) -> String {

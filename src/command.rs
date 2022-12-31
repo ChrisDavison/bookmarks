@@ -62,9 +62,11 @@ pub fn find(query: &[String], title_query: &[String]) -> Vec<String> {
     let query: Vec<&str> = query.iter().map(|x| x.as_str()).collect();
     let filt = tagsearch::filter::Filter::new(&query, false);
 
+    dbg!(bookmarks_dir().to_string_lossy().to_string());
     if let Ok(files) =
         tagsearch::utility::get_files(Some(bookmarks_dir().to_string_lossy().to_string()))
     {
+        dbg!(&files);
         match filt.files_matching_tag_query(&files) {
             Ok(files) => files
                 .iter()
